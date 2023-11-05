@@ -9,7 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 app.use(cors());
 
-const openai = new OpenAI({ apiKey: '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' });
+const openai = new OpenAI({ apiKey: process.env.OPENAIAPIKEY });
 
 
 app.use(express.json());
