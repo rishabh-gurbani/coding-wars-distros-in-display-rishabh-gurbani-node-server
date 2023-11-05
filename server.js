@@ -39,8 +39,6 @@ app.post('/generate-portfolio', async (request, response)=>{
             skillsList,
             contactDetails,
             primaryColor,
-            secondaryColor,
-            backgroundColor,
             fontSelection,
             fontSize,
             responsive
@@ -86,6 +84,7 @@ app.post('/generate-portfolio', async (request, response)=>{
         The website should also be fully ${responsive === 'yes' ? 'responsive' : 'layout'} on mobile devices.
         
         Please generate the HTML, CSS, and optionally JavaScript code that meets these specifications.
+        Make it exceptionally beautiful yet simple, make use of modern UI components.
         `;
         
 
