@@ -1,16 +1,28 @@
 const express = require('express');
-const OpenAI = require('openai');
-const yup = require('yup');
 const cors = require('cors');
 require('dotenv').config();
+const { default: axios } = require("axios");
 
 const app = express();
 
 const PORT = process.env.PORT || 3001;
 app.use(cors());
+app.use(express.json());
 
-const openai = new OpenAI({ apiKey: process.env.OPENAIAPIKEY });
+const getOpenAIResponse = async (messages) => {
+    const apiUrl = "https://api.openai.com/v1/chat/completions";
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + process.env.OPENAIAPIKEY,
+    };
 
+    const data = {
+        model: "gpt-3.5-turbo",
+        messages,
+    };
+    const res = await axios.post(apiUrl, data, { headers });
+    return res.data;
+};
 
 app.use(express.json());
 app.post('/generate-portfolio', async (request, response)=>{
@@ -46,12 +58,6 @@ app.post('/generate-portfolio', async (request, response)=>{
 
         const contactContent = `Contact Details:\nGitHub: ${contactDetails.github}\nLinkedIn: ${contactDetails.linkedin}\nTwitter: ${contactDetails.twitter}`;
 
-        // const professionalSummaryContent = `Professional Summary: ${professionalSummary}`;
-        // const templateContent = `Template Selection: ${templateSelection}\nHeader Position: ${headerPosition}\nInclude Photo: ${includePhoto}`;
-        // const styleContent = `Primary Color: ${primaryColor}\nSecondary Color: ${secondaryColor}\nBackground Color: ${backgroundColor}\nFont: ${fontSelection}\nFont Size: ${fontSize}`;
-        // const responsiveContent = `Responsive Design: ${responsive}`;
-        // const gptUserPrompt = ``;
-
         const systemPrompt = `
         You are a helpful assistant skilled in creating portfolio websites using frontend technologies like HTML, Tailwind CSS, and JavaScript. You have received a request to generate the code for ${nameContent} portfolio website.
         
@@ -74,8 +80,6 @@ app.post('/generate-portfolio', async (request, response)=>{
         
         The style preferences for the portfolio are:
         Primary Color: ${primaryColor}
-        Secondary Color: ${secondaryColor}
-        Background Color: ${backgroundColor}
         Font: ${fontSelection}
         Font Size: ${fontSize}
         
@@ -85,21 +89,18 @@ app.post('/generate-portfolio', async (request, response)=>{
         `;
         
 
-        const completionResponse = await openai.chat.completions.create({
-        messages: [
-            { role: 'system', content: systemPrompt},
-            //{ role: 'user', content: systemPrompt},
-        ],
-        model: 'gpt-3.5-turbo',
-        });
+        const completionResponse = await getOpenAIResponse(
+            [
+                { role: 'system', content: systemPrompt }
+            ]
+        );
 
         const completion = completionResponse.choices[0].message.content;
         console.log(completion)
-        response.json({ completion });
-        } catch (error) {
-        console.error(error);
+        response.status(200).json({ completion });
+    } catch (error) {
         response.status(500).send('Internal Server Error');
-        }
+    }
 }); 
 
 app.listen(PORT, () => {
